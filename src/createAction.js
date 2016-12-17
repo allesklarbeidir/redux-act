@@ -20,7 +20,19 @@ const normalizeAll = (dispatchOrStores) => {
   }
 }
 
-export default function createAction(description, payloadReducer, metaReducer) {
+export default function createAction(namespace, description, payloadReducer, metaReducer) {
+  
+  // ####
+  // Add Namespace-Feature with fallback to default behavior:
+  var hasNamespace;
+  if(!(hasNamespace = Object.prototype.toString.call(namespace) === '[object Array]')){	
+    description = namespace;
+    payloadReducer = description;
+    metaReducer = payloadReducer;
+	  namespace = undefined;
+  }
+  // ####
+  
   if (typeof description === 'function') {
     metaReducer = payloadReducer;
     payloadReducer = description;
@@ -37,12 +49,14 @@ export default function createAction(description, payloadReducer, metaReducer) {
 
   const isSerializable = (typeof description === 'string') && /^[0-9A-Z_]+$/.test(description);
 
+  // If namespace is used, allow multiple "SERIALIZABLE"-Actions as long as it is unique to each single namespace
   if (isSerializable) {
-    if (has(description)) {
-      throw new TypeError(`Duplicate action type: ${description}`);
+    let key = hasNamespace ? namespace.join("\\")+"::"+description : description;
+    if (has(key)) {
+      throw new TypeError(`Duplicate action type: ${key}`);
     }
 
-    add(description);
+    add(key);
   } else {
     ++id;
   }
@@ -55,6 +69,7 @@ export default function createAction(description, payloadReducer, metaReducer) {
     if (metaReducer) {
       return {
         type,
+        namespace: hasNamespace ? namespace : [], // Pass namespace to created action object
         payload: payloadReducer(...args),
         meta: metaReducer(...args)
       };
@@ -62,6 +77,7 @@ export default function createAction(description, payloadReducer, metaReducer) {
 
     return {
       type,
+      namespace: hasNamespace ? namespace : [], // Pass namespace to created action object
       payload: payloadReducer(...args)
     };
   }
