@@ -85,7 +85,7 @@ export default function createAction(namespace, typeid, description, payloadRedu
         namespace: hasNamespace ? namespace : [], // Pass namespace to created action object
         payload: payloadReducer(...args),
         meta: metaReducer(...args),
-	description: description
+	description: (typeof description === 'string') ? description : ''
       };
     }
 
@@ -93,7 +93,7 @@ export default function createAction(namespace, typeid, description, payloadRedu
       type,
       namespace: hasNamespace ? namespace : [], // Pass namespace to created action object
       payload: payloadReducer(...args),
-      description: description
+      description: (typeof description === 'string') ? description : ''
     };
   }
 
