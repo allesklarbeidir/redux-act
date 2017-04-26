@@ -36,7 +36,7 @@ export default function createAction(namespace, typeid, description, payloadRedu
     typeid = undefined;
   }
   var typeidCorrect;
-  if(hasNamespace && !(typeidCorrect = ((typeof typeid === 'string') && /^[0-9A-Z_]+$/.test(typeid)))
+  if(hasNamespace && !(typeidCorrect = ((typeof typeid === 'string') && /^[0-9A-Z_]+$/.test(typeid))))
   {
      throw new TypeError(
      	`Namespace-Feature is used with invalid TypeId. TypeId has to be in SERIALIZABLE_FORMAT. TypeId is ${typeid}`
