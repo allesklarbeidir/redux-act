@@ -20,16 +20,27 @@ const normalizeAll = (dispatchOrStores) => {
   }
 }
 
-export default function createAction(namespace, description, payloadReducer, metaReducer) {
+export default function createAction(namespace, typeid, description, payloadReducer, metaReducer) {
   
   // ####
   // Add Namespace-Feature with fallback to default behavior:
+  // ####
+  // Added 'typeid' to arguments. This should always be a SERIALIZABLE_ACTION_NAME. 
+  // If Namespace-Feature is used, a typeid has to be specified as well. Else fallback to default behavior.
   var hasNamespace;
   if(!(hasNamespace = Object.prototype.toString.call(namespace) === '[object Array]')){	
     description = namespace;
-    payloadReducer = description;
-    metaReducer = payloadReducer;
-	  namespace = undefined;
+    payloadReducer = typeid;
+    metaReducer = description;
+    namespace = undefined;
+    typeid = undefined;
+  }
+  var typeidCorrect;
+  if(hasNamespace && !(typeidCorrect = ((typeof typeid === 'string') && /^[0-9A-Z_]+$/.test(typeid)))
+  {
+     throw new TypeError(
+     	`Namespace-Feature is used with invalid TypeId. TypeId has to be in SERIALIZABLE_FORMAT. TypeId is ${typeid}`
+     );
   }
   // ####
   
@@ -47,11 +58,11 @@ export default function createAction(namespace, description, payloadReducer, met
     metaReducer = undefined;
   }
 
-  const isSerializable = (typeof description === 'string') && /^[0-9A-Z_]+$/.test(description);
+  const isSerializable = typeidCorrect || ((typeof description === 'string') && /^[0-9A-Z_]+$/.test(description));
 
   // If namespace is used, allow multiple "SERIALIZABLE"-Actions as long as it is unique to each single namespace
   if (isSerializable) {
-    let key = hasNamespace ? namespace.join("\\")+"::"+description : description;
+    let key = hasNamespace ? namespace.join("\\")+"::"+typeid : description;
     if (has(key)) {
       throw new TypeError(`Duplicate action type: ${key}`);
     }
@@ -61,7 +72,9 @@ export default function createAction(namespace, description, payloadReducer, met
     ++id;
   }
 
-  const type = isSerializable ? description : `[${id}]${description ? ' ' + description : ''}`
+  const type = typeidCorrect ? namespace.join("\\")+"::"+typeid : (
+	    isSerializable ? description : `[${id}]${description ? ' ' + description : ''}`
+	  )
 
   let dispatchFunctions = undefined;
 
@@ -71,14 +84,16 @@ export default function createAction(namespace, description, payloadReducer, met
         type,
         namespace: hasNamespace ? namespace : [], // Pass namespace to created action object
         payload: payloadReducer(...args),
-        meta: metaReducer(...args)
+        meta: metaReducer(...args),
+	description: description
       };
     }
 
     return {
       type,
       namespace: hasNamespace ? namespace : [], // Pass namespace to created action object
-      payload: payloadReducer(...args)
+      payload: payloadReducer(...args),
+      description: description
     };
   }
 
