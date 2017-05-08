@@ -7,9 +7,9 @@ function normalizeType(typeOrActionCreator) {
   return typeOrActionCreator;
 }
 
-export default function createReducer(handlers = {}, defaultState) {
+export default function createReducer(handlers = {}, defaultState, shortcutToPayload) {
   const opts = {
-    payload: true
+    payload: shortcutToPayload
   };
 
   function has(typeOrActionCreator) {
@@ -50,6 +50,13 @@ export default function createReducer(handlers = {}, defaultState) {
         return handlers[action.type](state, action.payload, action.meta);
       } else {
         return handlers[action.type](state, action);
+      }
+    } else if (action && (handlers[[action.type,false]] || handlers[[action.type,true]])) {
+      let shortcutToPayload = !!handlers[[action.type,true]];
+      if (shortcutToPayload) {
+        return handlers[[action.type,shortcutToPayload]](state, action.payload, action.meta);
+      } else {
+        return handlers[[action.type,shortcutToPayload]](state, action);
       }
     } else {
       return state;
