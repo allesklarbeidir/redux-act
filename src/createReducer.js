@@ -7,7 +7,7 @@ function normalizeType(typeOrActionCreator) {
   return typeOrActionCreator;
 }
 
-export default function createReducer(handlers = {}, defaultState, shortcutToPayload) {
+export default function createReducer(handlers = {}, defaultState, shortcutToPayload = true) {
   const opts = {
     payload: shortcutToPayload
   };
